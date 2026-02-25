@@ -129,6 +129,13 @@ export default function SignupScreen() {
             <Text style={styles.googleText}>Continue with Google</Text>
           </TouchableOpacity>
 
+          {/* Back Button */}
+          <TouchableOpacity style={styles.createButton}
+           onPress={() => router.push('/(auth)/welcome')}
+          >
+            <Text style={styles.createText}>Back</Text>
+          </TouchableOpacity>
+
         </View>
 
         {/* Login Link */}
