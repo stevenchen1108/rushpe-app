@@ -7,12 +7,13 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+
+        // Keep these for consistency (won't matter while tab bar is hidden)
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textSecondary,
-        tabBarStyle: {
-          backgroundColor: Colors.card,
-          borderTopColor: Colors.inputBorder,
-        },
+
+        // IMPORTANT: hide the Expo tab bar to prevent stacking
+        tabBarStyle: { display: 'none' },
       }}
     >
       <Tabs.Screen
@@ -21,6 +22,27 @@ export default function TabsLayout() {
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* Add these screens so your router.push('/(tabs)/points') etc. resolve cleanly */}
+      <Tabs.Screen
+        name="points"
+        options={{
+          title: 'Points',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="star-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />
