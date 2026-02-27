@@ -8,7 +8,7 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={[Colors.primary, Colors.primaryDark]}
+      colors={[Colors.primary, Colors.primaryDark, '#9a4a4a']}
       style={styles.container}
     >
       <View style={styles.content}>

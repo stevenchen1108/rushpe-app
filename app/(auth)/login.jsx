@@ -7,11 +7,15 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import Colors from '../../constants/colors';
 
 export default function LoginScreen() {
@@ -19,6 +23,42 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    // Validate fields aren't empty
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    // Validate Rutgers email
+    if (!email.endsWith('@rutgers.edu') && !email.endsWith('@scarletmail.rutgers.edu')) {
+      Alert.alert('Error', 'Please use your Rutgers email address (@rutgers.edu or @scarletmail.rutgers.edu)');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      if (!userCredential.user.emailVerified) {
+        router.replace('/(auth)/verify-email');
+      } else {
+        router.replace('/(tabs)/home');
+      }
+    } catch (error) {
+      if (error.code === 'auth/invalid-credential') {
+        Alert.alert('Error', 'Incorrect email or password');
+      } else if (error.code === 'auth/too-many-requests') {
+        Alert.alert('Error', 'Too many failed attempts. Please try again later');
+      } else {
+        Alert.alert('Error', 'Something went wrong. Please try again');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -26,7 +66,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
+
         {/* Logo */}
         <Image
           source={require('../../assets/shpe-logo.png')}
@@ -66,14 +106,22 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Text style={styles.forgotText}>Forgot password?</Text>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+            <Text style={styles.forgotText}>Forgot password?</Text>
+          </TouchableOpacity>
           </View>
 
           {/* Sign In Button */}
-          <TouchableOpacity style={styles.signInButton}>
-            <Text style={styles.signInText}>Sign In</Text>
+          <TouchableOpacity
+            style={[styles.signInButton, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.textLight} />
+            ) : (
+              <Text style={styles.signInText}>Sign In</Text>
+            )}
           </TouchableOpacity>
 
           {/* Divider */}
@@ -110,8 +158,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
-    paddingVertical: 60,
+    justifyContent: 'center',
+    paddingVertical: 40,
     paddingHorizontal: 24,
   },
   logo: {
@@ -170,6 +220,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 4,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   signInText: {
     color: Colors.textLight,
