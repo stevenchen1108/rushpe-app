@@ -7,11 +7,16 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification} from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../lib/firebase';
 import Colors from '../../constants/colors';
 
 export default function SignupScreen() {
@@ -22,6 +27,68 @@ export default function SignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSignup = async () => {
+    // Validate fields aren't empty
+    if (!fullName || !email || !password || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    // Validate Rutgers email
+    if (!email.endsWith('@rutgers.edu') && !email.endsWith('@scarletmail.rutgers.edu')) {
+      Alert.alert('Error', 'Please use your Rutgers email address (@rutgers.edu or @scarletmail.rutgers.edu)');
+      return;
+    }
+
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Create account in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Save full name to Firebase Auth profile
+      await updateProfile(user, { displayName: fullName });
+
+      // Save member info to Firestore database
+      await setDoc(doc(db, 'members', user.uid), {
+        fullName,
+        email,
+        createdAt: new Date(),
+        role: 'member',
+      });
+
+      // Send verification email
+      await sendEmailVerification(user);
+
+      // Navigate to verify email screen
+      router.replace('/(auth)/verify-email');
+
+    } catch (error) {
+      console.log(error.code, error.message);
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert('Error', 'An account with this email already exists');
+      } else {
+        Alert.alert('Error', 'Something went wrong. Please try again');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -112,8 +179,16 @@ export default function SignupScreen() {
           </View>
 
           {/* Create Account Button */}
-          <TouchableOpacity style={styles.createButton}>
-            <Text style={styles.createText}>Create Account</Text>
+          <TouchableOpacity
+            style={[styles.createButton, loading && styles.buttonDisabled]}
+            onPress={handleSignup}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.textLight} />
+            ) : (
+              <Text style={styles.createText}>Create Account</Text>
+            )}
           </TouchableOpacity>
 
           {/* Divider */}
@@ -150,8 +225,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
-    paddingVertical: 60,
+    justifyContent: 'center',
+    paddingVertical: 40,
     paddingHorizontal: 24,
   },
   logo: {
@@ -206,6 +283,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 4,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   createText: {
     color: Colors.textLight,
