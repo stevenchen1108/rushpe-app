@@ -106,10 +106,22 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
             />
-          <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                size={20}
+                color={Colors.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Forgot Password */}
+          <TouchableOpacity
+            style={styles.forgotContainer}
+            onPress={() => router.push('/(auth)/forgot-password')}
+          >
             <Text style={styles.forgotText}>Forgot password?</Text>
           </TouchableOpacity>
-          </View>
 
           {/* Sign In Button */}
           <TouchableOpacity
@@ -201,6 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     backgroundColor: '#FAFAFA',
+    overflow: 'hidden',
   },
   inputIcon: {
     marginRight: 10,
@@ -209,10 +222,15 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: Colors.textPrimary,
+    minWidth: 0,
   },
   forgotText: {
     fontSize: 13,
     color: Colors.textSecondary,
+  },
+  forgotContainer: {
+    alignSelf: 'flex-end',
+    marginTop: -4,
   },
   signInButton: {
     backgroundColor: Colors.primary,
