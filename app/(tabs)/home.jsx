@@ -63,9 +63,12 @@ export default function HomeScreen() {
   const firstName = getFirstName();
   const greetingText = firstName ? `${greeting}, ${firstName}` : greeting;
 
+  // --- TAB BAR ICON STATE (Home screen = Home is active) ---
+  const ACTIVE_RED = Colors.primary ?? '#8B1E2D'; // fallback semi-dark red if Colors.primary isn't set
+
   return (
     <View style={styles.container}>
-      {/* Top greeting (slightly lower on iPhone 15+ so it feels better spaced) */}
+      {/* Top greeting */}
       <View style={[styles.header, { paddingTop: insets.top + 0 }]}>
         <Text style={styles.greeting}>{greetingText}</Text>
       </View>
@@ -78,35 +81,38 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom tabs (Home stays, add Points/Profile beside it) */}
+      {/* Bottom tabs */}
       <View style={styles.tabBar}>
+        {/* HOME (ACTIVE) */}
         <TouchableOpacity
-          style={[styles.tabButton, styles.tabButtonActive]}
+          style={styles.tabButton}
           onPress={() => router.push('/(tabs)/home')}
           accessibilityRole="button"
           accessibilityLabel="Home"
         >
-          <Ionicons name="home" size={20} color={Colors.textPrimary} />
-          <Text style={[styles.tabText, styles.tabTextActive]}>Home</Text>
+          <Ionicons name="home" size={22} color={ACTIVE_RED} />
+          <Text style={[styles.tabText, { color: ACTIVE_RED }]}>Home</Text>
         </TouchableOpacity>
 
+        {/* POINTS (INACTIVE) */}
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => router.push('/(tabs)/points')}
           accessibilityRole="button"
           accessibilityLabel="Points"
         >
-          <Ionicons name="star" size={20} color={Colors.textSecondary} />
+          <Ionicons name="star-outline" size={22} color={Colors.textSecondary} />
           <Text style={styles.tabText}>Points</Text>
         </TouchableOpacity>
 
+        {/* PROFILE (INACTIVE) */}
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => router.push('/(tabs)/profile')}
           accessibilityRole="button"
           accessibilityLabel="Profile"
         >
-          <Ionicons name="person" size={20} color={Colors.textSecondary} />
+          <Ionicons name="person-outline" size={22} color={Colors.textSecondary} />
           <Text style={styles.tabText}>Profile</Text>
         </TouchableOpacity>
       </View>
@@ -170,18 +176,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: 12,
     gap: 4,
-  },
-  tabButtonActive: {
-    backgroundColor: Colors.card ?? 'rgba(0,0,0,0.05)',
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
-  tabTextActive: {
-    color: Colors.textPrimary,
-  },
+
+  // Removed the "active box highlight" styles by not using them anymore
+  // tabButtonActive: { ... }
+  // tabTextActive: { ... }
 });
